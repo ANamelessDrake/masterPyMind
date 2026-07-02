@@ -77,3 +77,24 @@ WIN 2
 ```
 
 Exit code is `0` on a win, `1` on a loss.
+
+## Solver bot
+
+`solver.py` is a bot that plays the game entirely through the machine protocol
+above — it launches `masterpymind.py --machine` as a subprocess and only reads
+its stdout, never touching the secret. It's both a demo of the scripting
+interface and a regression test of the scoring logic.
+
+It uses **consistency filtering**: it starts with every possible code as a
+hypothesis and, after each `FEEDBACK` line, discards any candidate that
+wouldn't have produced that same score, then guesses a survivor.
+
+```bash
+python3 solver.py --seed 42          # solve one game, narrated
+python3 solver.py --length 5 --colors 8
+python3 solver.py --trials 300       # play 300 seeds, report a guess histogram
+```
+
+`--trials N` plays seeds `0..N-1` and prints a win rate and guess distribution;
+it exits non-zero if any game is lost, so it works as a CI check.
+
