@@ -1,0 +1,42 @@
+name: CI
+
+# The solver plays the game over its machine protocol and exits non-zero if
+# any game is lost, so running it across many seeds is a end-to-end regression
+# test of the scoring logic -- no separate test framework needed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  solver:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install jblib
+        run: python -m pip install --upgrade pip jblib
+
+      - name: Solve classic rules (6 colors, 4 pegs)
+        run: python solver.py --trials 300
+
+      - name: Solve larger board (5 pegs, 12 guesses)
+        run: python solver.py --length 5 --colors 6 --guesses 12 --trials 150
+
+      - name: Solve full palette (8 colors)
+        run: python solver.py --length 4 --colors 8 --trials 150
+
+      - name: Solve no-duplicate secrets
+        run: python solver.py --no-duplicates --length 4 --colors 6 --trials 150
