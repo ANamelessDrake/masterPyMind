@@ -27,7 +27,7 @@ import sys
 
 from jblib import jbcolor
 
-from masterpymind import score_guess, PALETTE, MAX_COLORS
+from masterpymind import score_guess, MAX_COLORS
 
 # Above this many hypotheses, full enumeration gets slow/memory-heavy. The
 # classic 6-color/4-peg game is only 1296, so this ceiling is generous.
