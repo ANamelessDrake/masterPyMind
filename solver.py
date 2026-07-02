@@ -17,11 +17,13 @@ Usage::
 
     python3 solver.py --seed 42            # solve one game, narrated
     python3 solver.py --length 5 --colors 8
-    python3 solver.py --trials 200         # play 200 seeds, report stats
+    python3 solver.py --trials 200         # play seeds 0..199, report stats
+    python3 solver.py --random --trials 200  # a random block of seeds each run
 """
 
 import argparse
 import itertools
+import random
 import subprocess
 import sys
 
@@ -151,10 +153,29 @@ def game_args_from(args):
 
 
 def run_trials(args):
-    """Play many seeded games and report a win-rate + guess distribution."""
+    """Play many seeded games and report a win-rate + guess distribution.
+
+    Seeds run in a contiguous window ``start .. start + trials - 1``. By
+    default ``start`` is 0, so results are identical every run (reproducible,
+    good for a pass/fail gate). With ``--random`` the window's start is chosen
+    from OS entropy, so each run exercises different secrets -- and the chosen
+    start is printed so any failure can be reproduced with ``--start``.
+    """
     base = game_args_from(args)
+    if args.random:
+        start = random.SystemRandom().randrange(0, 1_000_000_000)
+    else:
+        start = args.start
+    seeds = range(start, start + args.trials)
+
+    label = f"  seeds {start}..{start + args.trials - 1}"
+    if args.random:
+        label += jbcolor(f"  (random -- re-run with --start {start} "
+                         "to reproduce)", fg="bright_black")
+    print(label)
+
     wins, turn_counts = 0, []
-    for seed in range(args.trials):
+    for seed in seeds:
         won, turns, secret = solve_one(base + ["--seed", str(seed)])
         if won:
             wins += 1
@@ -194,7 +215,12 @@ def build_parser():
     p.add_argument("--seed", type=int, default=None,
                    help="seed for a single reproducible game")
     p.add_argument("--trials", type=int, default=None, metavar="N",
-                   help="play N seeded games (0..N-1) and report stats")
+                   help="play N seeded games and report stats")
+    p.add_argument("--start", type=int, default=0, metavar="S",
+                   help="first seed of the --trials window (default 0)")
+    p.add_argument("--random", action="store_true",
+                   help="pick a random --trials window each run "
+                        "(the chosen start is printed for reproducibility)")
     return p
 
 

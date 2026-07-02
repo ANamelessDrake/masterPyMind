@@ -90,11 +90,15 @@ hypothesis and, after each `FEEDBACK` line, discards any candidate that
 wouldn't have produced that same score, then guesses a survivor.
 
 ```bash
-python3 solver.py --seed 42          # solve one game, narrated
+python3 solver.py --seed 42            # solve one game, narrated
 python3 solver.py --length 5 --colors 8
-python3 solver.py --trials 300       # play 300 seeds, report a guess histogram
+python3 solver.py --trials 300         # play 300 seeds, report a guess histogram
+python3 solver.py --random --trials 300  # a different random block each run
 ```
 
-`--trials N` plays seeds `0..N-1` and prints a win rate and guess distribution;
-it exits non-zero if any game is lost, so it works as a CI check.
+`--trials N` plays a window of `N` seeds and prints a win rate and guess
+distribution; it exits non-zero if any game is lost, so it works as a CI check.
+The window starts at seed 0 by default (fully reproducible). `--random` picks a
+random start each run for broader coverage over time, and prints that start so
+any failure can be reproduced with `--start S`.
 
